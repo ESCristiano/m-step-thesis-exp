@@ -1,0 +1,18 @@
+[submodule "src/s-world/trusted-firmware-m"]
+	path = src/s-world/trusted-firmware-m
+	url = https://github.com/ESCristiano/trusted-firmware-m.git
+[submodule "src/s-world/tf-m-tests"]
+	path = src/s-world/tf-m-tests
+	url = https://github.com/ESCristiano/tf-m-tests.git
+[submodule "src/s-world/mbedtls"]
+	path = src/s-world/mbedtls
+	url = https://github.com/ESCristiano/mbedtls
+[submodule "src/s-world/mcuboot"]
+	path = src/s-world/mcuboot
+	url = https://github.com/mcu-tools/mcuboot
+[submodule "src/m-step/mstp-debug/renode/src/renode"]
+	path = src/m-step/mstp-debug/renode/src/renode
+	url = https://github.com/ESCristiano/renode.git
+[submodule "src/m-step/mstp-debug/renode/src/renode-infrastructure"]
+	path = src/m-step/mstp-debug/renode/src/renode-infrastructure
+	url = https://github.com/ESCristiano/renode-infrastructure.git
