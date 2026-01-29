@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-ROOT="$(realpath .)"
-TFM="${ROOT}/../s-world/trusted-firmware-m"
-NSPE_RUNTIME=${ROOT}/../s-world/tf-m-tests
-# NSPE_APP=${ROOT}/tf-m-tests/tests_reg
-NSPE_APP=${ROOT}/../ns-world-rtos
-NSPE_MSTP_APP=${ROOT}/../ns-world-bare
-MSTP=${ROOT}/../m-step
+ROOT="$(realpath "$(dirname "$0")")"
+MEBDTLS="$(realpath "${ROOT}/../s-world/mbedtls")"
+TFM="$(realpath "${ROOT}/../s-world/trusted-firmware-m")"
+NSPE_RUNTIME="$(realpath "${ROOT}/../s-world/tf-m-tests")"
+NSPE_APP="$(realpath "${ROOT}/../ns-world-rtos")"
+NSPE_MSTP_APP="$(realpath "${ROOT}/../ns-world-bare")"
+MSTP="$(realpath "${ROOT}/../m-step")"
 
 # Default values
 TARGET="STM32L5"
@@ -17,6 +17,9 @@ PROFILE="bare"
 set -e
 
 DEPLOY=false  # default
+MONITOR=false  # default
+VISUALIZER=false  # default
+RAW_TRACE=""  # default
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -57,9 +60,29 @@ while [[ $# -gt 0 ]]; do
             DEPLOY=true
             shift
             ;;
+        -m|--monitor)
+            MONITOR=true
+            RAW_TRACE="$2"
+            if [[ -z "$RAW_TRACE" ]]; then
+                echo "Error: -m|--monitor requires an output file path."
+                exit 1
+            fi
+            shift 2
+            ;;
+        -vi|--visualizer)
+            VISUALIZER=true
+            RAW_TRACE="$2"
+            ELF="$3"
+            VIS_OUT="$4"
+            if [[ -z "$RAW_TRACE" || -z "$ELF" || -z "$VIS_OUT" ]]; then
+            echo "Error: -vi|--visualizer requires a trace, an .elf file, and a out dir."
+            exit 1
+            fi
+            shift 4
+            ;;
         *)
             echo "Unknown argument: $1"
-            echo "Usage: $0 [-b|--build <s|ns|ns_costum>] [-c|--config <s|ns>] [-t|--target <BoardName>] [-d|--deploy] [-p|--profile <bare|crypto|mstp>]"
+            echo "Usage: $0 [-b|--build <s|ns|ns_costum>] [-c|--config <s|ns>] [-t|--target <BoardName>] [-d|--deploy] [-p|--profile <bare|crypto|mstp>] [-m|--monitor <output_file>] [-vi|--visualizer <trace_file> <elf_file> <output_dir>]"
             exit 1
             ;;
     esac
@@ -78,7 +101,7 @@ else
         exit 1
 fi
 
-CONFIG="build/${PLATFORM}_${PROFILE}_${CONFIG_TYPE}"
+CONFIG="${ROOT}/build/${PLATFORM}_${PROFILE}_${CONFIG_TYPE}"
 
 #-------------------------------------------------------------------------------
 # Configure SPE build system 
@@ -96,44 +119,62 @@ if [[ "${CONFIG_TYPE}" == "s" ]]; then
                 -B ${CONFIG}                                            \
                 -DTFM_EXTRA_PARTITION_PATHS=${PARTITION_PATHS}          \
                 -DTFM_EXTRA_MANIFEST_LIST_FILES=${MANIFEST_LIST_FILE}   \
-                -C tfm-configs/${PLATFORM}-${PROFILE}-config.cmake
+                -C ${ROOT}/tfm-configs/${PLATFORM}-${PROFILE}-config.cmake
 fi
 
 #-------------------------------------------------------------------------------
 # Configure NSPE build system
 #-------------------------------------------------------------------------------
 if [[ "${CONFIG_TYPE}" == "ns" ]]; then
+        BUILD_S="${ROOT}/build/${PLATFORM}_${PROFILE}_s"
 
-        CONFIG_S="build/${PLATFORM}_${PROFILE}_s"
+        CONFIG_S="${ROOT}/build/${PLATFORM}_${PROFILE}_s"
         TFM_SPE="$(realpath ${CONFIG_S})"
+
+        # I need to build the secure image first to have the SPE API available
+        cmake --build ${BUILD_S} -- install
+
+        # This file is missing from the SPE installation, maybe a TFM bug when
+        # building Mbed TLS out of tree. 
+        if [[ ! -f ${BUILD_S}/api_ns/interface/include/mbedtls/mbedtls_config.h ]]; then
+            cp ${MEBDTLS}/include/mbedtls/mbedtls_config.h \
+               ${BUILD_S}/api_ns/interface/include/mbedtls
+        fi
 
         if [[ ! -d ${TFM_SPE}/api_ns/ ]]; then
                 echo "Error: The $TFM_SPE/api_ns/ does not exist. Please build the secure image first."
                 exit 1
         fi
 
-        cmake   -S ${TFM} ${NSPE_APP}                                          \
-        -B ${CONFIG}                                                           \
-        -DCMAKE_BUILD_TYPE=Debug                                               \
-        -DNSPE_RUNTIME_PATH=${NSPE_RUNTIME}                                    \
-        -DCONFIG_SPE_PATH=${TFM_SPE}/api_ns/                                   \
-        -DTFM_TOOLCHAIN_FILE=${TFM_SPE}/api_ns/cmake/toolchain_ns_GNUARM.cmake
+        cmake   -S ${TFM} ${NSPE_APP}                                                   \
+                -B ${CONFIG}                                                            \
+                -DCMAKE_BUILD_TYPE=Debug                                                \
+                -DNSPE_RUNTIME_PATH=${NSPE_RUNTIME}                                     \
+                -DCONFIG_SPE_PATH=${TFM_SPE}/api_ns/                                    \
+                -DTFM_TOOLCHAIN_FILE=${TFM_SPE}/api_ns/cmake/toolchain_ns_GNUARM.cmake
 fi
 
-BUILD="build/${PLATFORM}_${PROFILE}_${BUILD_TYPE}"
+BUILD="${ROOT}/build/${PLATFORM}_${PROFILE}_${BUILD_TYPE}"
 
 #-------------------------------------------------------------------------------
 # Build SPE build system 
 #-------------------------------------------------------------------------------
 if [[ "${BUILD_TYPE}" == "s" ]]; then
         cmake --build ${BUILD} -- install
+
+        # This file is missing from the SPE installation, maybe a TFM bug when
+        # building Mbed TLS out of tree. 
+        if [[ ! -f ${BUILD}/api_ns/interface/include/mbedtls/mbedtls_config.h ]]; then
+            cp ${MEBDTLS}/include/mbedtls/mbedtls_config.h \
+               ${BUILD}/api_ns/interface/include/mbedtls
+        fi
 fi
 
 #-------------------------------------------------------------------------------
 # Build NSPE build system
 #-------------------------------------------------------------------------------
 if [[ "${BUILD_TYPE}" == "ns" ]]; then
-        BUILD_S="build/${PLATFORM}_${PROFILE}_s"
+        BUILD_S="${ROOT}/build/${PLATFORM}_${PROFILE}_s"
             
         cmake --build ${BUILD}
         cp ${BUILD}/bin/tfm_ns_signed.bin ${BUILD_S}/api_ns/image_signing/scripts
@@ -143,7 +184,7 @@ fi
 # Build Costum NS
 #-------------------------------------------------------------------------------
 if [[ "${BUILD_TYPE}" == "ns_costum" ]]; then
-        BUILD_S="build/${PLATFORM}_${PROFILE}_s"
+        BUILD_S="${ROOT}/build/${PLATFORM}_${PROFILE}_s"
             
         cmake --build ${NSPE_MSTP_APP}/build
 
@@ -170,15 +211,51 @@ fi
 # Flash TFM
 #-------------------------------------------------------------------------------
 if $DEPLOY; then        
-        BUILD_S="build/${PLATFORM}_${PROFILE}_s"
+        BUILD_S="${ROOT}/build/${PLATFORM}_${PROFILE}_s"
         TFM_SPE="$(realpath ${BUILD_S})"
 
         echo "Deploying for target ${TARGET} with profile ${TFM_SPE}"
         
         ${TFM_SPE}/api_ns/postbuild.sh
-        # Just need once to setup option bytes. If it's first time, please 
-        # uncomment the line below and run it once.
+
+        #-----------------------------------------------------------------------
+        # ATTENTION!
+        #-----------------------------------------------------------------------
+        # The script below only needs to run once to set up the option bytes.
+        # If this is your first time running it, please uncomment the line below.
+        # Otherwise, you likely won't be able to run the code on your board.
+        # You can leave it uncommented, but it will add unnecessary time to each 
+        # run. Once the board's option bytes are configured, they persist across 
+        # power cycles, so you can leave this line commented out after the 
+        # initial setup.
+        #
         # ${TFM_SPE}/api_ns/regression.sh
+        #-----------------------------------------------------------------------
+
         ${TFM_SPE}/api_ns/TFM_UPDATE.sh      
-        # ${TFM_SPE}/api_ns/TFM_UPDATE_BL2_ONLY.sh
 fi
+
+#-------------------------------------------------------------------------------
+# Log results
+#-------------------------------------------------------------------------------
+if $MONITOR; then     
+        python3 ${MSTP}/mstp-monitor/monitor.py \
+                -o ${RAW_TRACE}
+fi
+
+#-------------------------------------------------------------------------------
+# Visualize Trace with GTKwave
+#-------------------------------------------------------------------------------
+if $VISUALIZER; then     
+    echo "Launching GTKwave Visualizer..."
+    RAW_TRACE="$(realpath "${RAW_TRACE}")"
+    ELF="$(realpath "${RAW_TRACE}")"
+    VIS_OUT="$(realpath "${VIS_OUT}")"
+    echo "${RAW_TRACE}"
+    echo "${ELF}"
+    echo "${VIS_OUT}"
+    ${MSTP}/mstp-visualizer/1-gen-vcd.sh -c
+    ${MSTP}/mstp-visualizer/1-gen-vcd.sh -t ${RAW_TRACE} -elf ${ELF} -o ${VIS_OUT}
+    ${MSTP}/mstp-visualizer/2-gtkwave.sh -i ${VIS_OUT}/trace.vcd
+fi
+

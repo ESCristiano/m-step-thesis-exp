@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
-ROOT="$(realpath .)"
+ROOT="$(realpath "$(dirname "$0")")"
 
 COPILOT="${ROOT}/../copilot/copilot.sh"
+
+MSTP_DIR="$(realpath "${ROOT}/../m-step")"
+TEST_CONFIG="${MSTP_DIR}/mstp-eval/inc/test_eval_config.h"
 
 # Static Configuration Values
 TARGET="STM32L5"
@@ -14,6 +17,7 @@ PROFILE="mstp"
 set -e
 
 BUILD_ALL=true
+TEST_MODE=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -27,13 +31,17 @@ while [[ $# -gt 0 ]]; do
             fi
             shift 2
             ;;
+        -t|--test-mode)
+            TEST_MODE=true
+            shift
+            ;;
         -h|--help)
-            echo "Usage: $0 [-b|--build <s|ns>]"
+            echo "Usage: $0 [-b|--build <s|ns>] [-t|--test-mode]"
             exit 0
             ;;
         *)
             echo "Unknown argument: $1"
-            echo "Usage: $0 [-b|--build <s|ns>]"
+            echo "Usage: $0 [-b|--build <s|ns>] [-t|--test-mode]"
             exit 1
             ;;
     esac
@@ -45,17 +53,20 @@ done
 if [[ "$BUILD_ALL" == "true" ]]; then
     echo "Building for target $TARGET with profile $PROFILE"
 
+    if [[ "$TEST_MODE" == "false" ]]; then
+        # Disable all test configurations and creating an empty one. This will not
+        # make all tests disabled by default. If you wanna run tests, you should go
+        # to the evaluation folder and run the specific scripts defined there or, 
+        # provide your own test config file.
+        rm -rf "${TEST_CONFIG}" || true
+        touch "${TEST_CONFIG}" || true
+    fi
+
     # Build S
-    ORIGINAL_DIR="$(pwd)"
-    cd "$(dirname "${COPILOT}")"
     ${COPILOT} -b s -t ${TARGET} -p ${PROFILE}
-    cd "${ORIGINAL_DIR}"
 
     # Build NS
-    ORIGINAL_DIR="$(pwd)"
-    cd "$(dirname "${COPILOT}")"
     ${COPILOT} -b ${BUILD_TYPE} -t ${TARGET} -p ${PROFILE}
-    cd "${ORIGINAL_DIR}"
 fi
 
 #-------------------------------------------------------------------------------
@@ -64,17 +75,20 @@ fi
 if [[ "$BUILD_ALL" == "false" ]]; then
     echo "Building for target $TARGET with profile $PROFILE" for $BUILD_TYPE world
     
+    if [[ "$TEST_MODE" == "false" ]]; then
+        # Disable all test configurations and creating an empty one. This will not
+        # make all tests disabled by default. If you wanna run tests, you should go
+        # to the evaluation folder and run the specific scripts defined there or, 
+        # provide your own test config file.
+        rm -rf "${TEST_CONFIG}" || true
+        touch "${TEST_CONFIG}" || true
+    fi
+
     if [[ "$WORLD" == "s" ]]; then
         # Build S
-        ORIGINAL_DIR="$(pwd)"
-        cd "$(dirname "${COPILOT}")"
         ${COPILOT} -b s -t ${TARGET} -p ${PROFILE}
-        cd "${ORIGINAL_DIR}"
     elif [[ "$WORLD" == "ns" ]]; then
         # Build NS
-        ORIGINAL_DIR="$(pwd)"
-        cd "$(dirname "${COPILOT}")"
         ${COPILOT} -b ${BUILD_TYPE} -t ${TARGET} -p ${PROFILE}
-        cd "${ORIGINAL_DIR}"
     fi
 fi

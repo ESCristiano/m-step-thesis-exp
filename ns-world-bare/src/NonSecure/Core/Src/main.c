@@ -29,7 +29,6 @@
 #include "stdlib.h"
 
 #include "mstp_eval.h"
-#include "mstp_poc.h"
 
 int __io_putchar(int ch)
 {
@@ -75,7 +74,6 @@ int main(void)
   printf("Hello NS World!!\r\n");
  
   mstp_eval();
-  // mstp_poc();
 
   printf("End NS World!!\r\n");
 

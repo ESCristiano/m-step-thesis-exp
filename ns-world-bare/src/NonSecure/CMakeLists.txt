@@ -222,7 +222,6 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     # M-Step library
     mstp
     mstp_eval
-    mstp_poc
 )
 
 # Validate that STM32CubeMX code is compatible with C standard

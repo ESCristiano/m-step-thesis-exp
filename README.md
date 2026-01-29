@@ -1,65 +1,379 @@
 # M-Step: A Single-Stepping Framework for Side-Channel Analysis on TrustZone-M
 
-This is the repository aggregating the artifacts of the USENIX Sec'26 paper: **M-Step: A Single-Stepping Framework for Side-Channel Analysis on TrustZone-M**.
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-STM32L5-green.svg)](https://www.st.com/en/microcontrollers-microprocessors/stm32l5-series.html)
+[![Paper](https://img.shields.io/badge/Paper-USENIX%20Sec'26-red.svg)](Rodrigues%20et%20al.%20-%20M-Step%20A%20Single-Stepping%20Framework%20for%20Side-Channel%20Analysis%20on%20TrustZone-M.pdf)
 
-**Note:** The terminology in this repository may not always match that used in the paper.
-However, we are committed to addressing this for artifact evaluation (Functional and Reproduced badges), ensuring consistency between the paper and the artifacts.
-Furthermore, we strongly believe this framework will become widely used—similar to SGX-Step for Intel—so we will also provide comprehensive documentation to describe proper usage and ensure maintainability.
+This repository contains the artifacts for the USENIX Security'26 paper: **"M-Step: A Single-Stepping Framework for Side-Channel Analysis on TrustZone-M"**.
 
-## Structure
+M-Step is a software-based single-stepping framework that enables instruction-level side-channel analysis on ARM TrustZone-M enabled microcontrollers. It allows an unprivileged attacker in the Non-Secure world to precisely interrupt and observe the execution of Secure world code at instruction granularity.
 
-This repo is organized as follows:
-- **[copilot](copilot/):** Contains scripts and configuration files for setting up the M-Step development environment.
-- **[evaluation](evaluation/):** Contains the datasets and scripts required to reproduce the figures and tables presented in the paper’s evaluation (**Section 6**). 
-- **[m-step](m-step/):** Contains the source code for the M-Step framework, including the core mechanisms (**Section 4**), infrastructure (**Section 5**), and evaluation code (**Section 6**).
-- **[ns-world-bare](ns-world-bare/):** Contains a Baremetal NS runtime enviroment.
-- **[ns-world-rtos](ns-world-rtos/):** Contains a  RTOS-based NS runtime enviroment.
-- **[s-world](s-world/):** Contains the Secure world runtime environment and third-party modules, managed as Git submodules (e.g., TF-M, Mbed TLS, MCUboot, etc).
-  
-## Reproduction
+---
 
-If you are familiar with Nix, setup should be straightforward.
-A Nix shell/dev environment (`flake.nix`) is provided to fetch all dependencies needed to build and deploy the experiments/software.
+## 📋 Table of Contents
 
-To enter the development environment in each folder, run:
+- [Overview](#overview)
+- [Repository Structure](#repository-structure)
+- [Hardware Requirements](#hardware-requirements)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Building and Deployment](#building-and-deployment)
+- [Running the Evaluation](#running-the-evaluation)
+- [Tools and Utilities](#tools-and-utilities)
+- [Extending M-Step](#extending-m-step)
+- [Troubleshooting](#troubleshooting)
+- [Citation](#citation)
+- [License](#license)
+
+---
+
+## Overview
+
+M-Step exploits the interrupt mechanism in ARM Cortex-M processors to achieve single-stepping of Secure world code from the Non-Secure world. The framework includes:
+
+- **Core M-Step Algorithm**: Precise timer-based interrupt injection for single-stepping
+- **Side-Channel Primitives**: Multiple observation channels including:
+  - `Mstp-Nemesis`: Reveals interrupt-latencies, Nemesis.
+  - `Mstp-Cache`: Reveals cache activity, PRIME+PROVE.
+  - `Mstp-BUSted`: Reveals memory accesses, BUSted.
+  - `Mstp-Zoom`: Amplifies interrupt-latency leakage.
+- **Analysis Tools**: Trace visualization, VCD generation for GTKWave, and automated key extraction
+- **Proof-of-Concept Attacks**: End-to-end RSA key extraction from Mbed TLS
+
+---
+
+## Repository Structure
+
+```
+m-step/
+├── copilot/            # Build automation scripts and TF-M configurations
+├── evaluation/         # Evaluation scripts and datasets
+├── m-step/             # M-Step framework source code
+├── ns-world-bare/      # Baremetal Non-Secure world runtime
+├── s-world/            # Secure world runtime (TF-M, Mbed TLS, MCUboot)
+├── flake.nix           # Nix development environment
+```
+
+---
+
+## Hardware Requirements
+
+- **Target Board**: [NUCLEO-L552ZE-Q](https://www.st.com/en/evaluation-tools/nucleo-l552ze-q.html) (STM32L5 series with TrustZone-M)
+
+---
+
+## Prerequisites
+
+### 1. Install Nix Package Manager
+
+The development environment uses Nix for reproducible builds. Install Nix and add your user to the `nix-users` group:
+
+```bash
+sh <(curl --proto '=https' --tlsv1.2 -L https://nixos.org/nix/install) --no-daemon
+```
+
+Enable experimental features by adding to `~/.config/nix/nix.conf` or `/etc/nix/nix.conf`:
+
+```
+experimental-features = nix-command flakes
+```
+
+### 2. Install STM32 Programmer
+
+Download and install [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html) (requires ST account).
+
+Verify installation:
+```bash
+STM32_Programmer_CLI --version
+```
+
+Ensure `STM32_Programmer_CLI` is in your `PATH`.
+
+### 3. Configure USB Permissions (udev Rules)
+
+Create `/etc/udev/rules.d/99-stlink.rules` with the following content:
+
+```
+# ST-LINK V3 (STM32L5 Discovery / Nucleo)
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374e", MODE="0666", GROUP="plugdev"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374b", MODE="0666", GROUP="plugdev"
+```
+
+Reload udev rules:
+```bash
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
+> **Note**: Without these rules, `sudo` is required for every deployment.
+
+---
+
+## Quick Start
+
+### 1. Clone the Repository
+
+```bash
+git clone --recurse-submodules https://github.com/M-Step-Framework/m-step.git
+cd m-step
+```
+
+### 2. Enter the Development Environment
 
 ```bash
 nix develop
 ```
 
-### Prerequisites
+This provides a reproducible shell with all required dependencies (ARM toolchain, CMake, Python packages, GTKWave, etc.).
 
-These steps were tested on Ubuntu 24.04.
+> **Note**: Run `nix develop` in every new terminal session.
 
-1. Install the Nix package manager and add your user to the `nix-users` group (you will need to log out and back in):
+### 3. Build and Deploy
 
-    ```shell
-    sudo apt install nix-bin
-    sudo adduser <your-username> nix-users
-    ```
+```bash
+# Navigate to the baremetal NS world
+cd ns-world-bare
 
-2. Install the STM32 programmer from:  
+# Configure the build system
+./0-config.sh
 
-    https://www.st.com/en/development-tools/stm32cubeprog.html#get-softwar (You will need to log in or create an account.) 
+# Compile the Secure and Non-Secure images
+./1-compile.sh
 
-    Ensure the `STM32_Programmer_CLI` binary is in your PATH.
+# Deploy to the target board
+./2-deploy.sh
+```
 
-3. Open the development environment with all necessary dependencies:
+### 4. Monitor Output
 
-    ```shell
-    nix --extra-experimental-features nix-command --extra-experimental-features flakes develop
-    ```
+```bash
+# Start the serial monitor
+./3-monitor.sh -o trace.txt
+```
 
-4. You now have a shell with all required programs and tools to run the code.
+---
 
-**Note:** If needed, press the reset button on the board. You should see output on the serial port:
+## Building and Deployment
 
-```shell
-# To see connected boards and ports, use:
+### Using the Copilot Script
+
+The `copilot.sh` script provides a unified interface for building and deploying:
+
+```bash
+cd copilot
+
+# Configure and build the Secure world
+./copilot.sh -c s -p mstp
+./copilot.sh -b s -p mstp
+
+# Configure and build the Non-Secure world
+./copilot.sh -c ns -p mstp
+./copilot.sh -b ns -p mstp
+
+# Build custom baremetal NS application
+./copilot.sh -b ns_costum -p mstp
+
+# Deploy to target
+./copilot.sh -d -p mstp
+
+# Monitor serial output
+./copilot.sh -m output.txt
+```
+
+### Build Profiles
+
+| Profile | Description |
+|---------|-------------|
+| `bare`  | Minimal TF-M configuration |
+| `crypto`| TF-M with crypto services |
+| `mstp`  | Full M-Step evaluation setup |
+
+### First-Time Setup
+
+On first deployment, you may need to configure the board's option bytes.
+Uncomment the regression.sh line in ([`copilot.sh`](copilot/copilot.sh)) or run manually:
+
+```bash
+${BUILD_S}/api_ns/regression.sh
+```
+
+---
+
+## Running the Evaluation
+
+### Run All Tests
+
+```bash
+cd evaluation
+./1-run-all-tests.sh
+```
+
+### Run Individual Tests
+
+| Test | Command | Paper Reference |
+|------|---------|-----------------|
+| M-Step Metrics | `./t1-mstp_metrics/1-run-test.sh` | Table 5 |
+| DIV Instruction Covert Channel | `./t2-covert-udiv/1-run-test.sh` | Figure 6a |
+| Instruction Timing Covert Channel | `./t3-covert-inst/1-run-test.sh` | Figure 6b |
+| ICache-based Covert Channel | `./t4-covert-cache/1-run-test.sh` | Figure 6c |
+| Bus Contention Covert Channel | `./t5-covert-cont/1-run-test.sh` | Figure 6d |
+| End-to-End PoC Attacks | `./t6_pocs/1-run-pocs.sh` | Section 6.3 |
+
+### Generate Paper Figures
+
+```bash
+cd evaluation/graphs
+./1-draw-graphs.sh
+```
+
+### Clean Up
+
+```bash
+./1-run-all-tests.sh -c
+```
+
+---
+
+## Tools and Utilities
+
+### Serial Monitor (`mstp-monitor`)
+
+Captures UART output from the target board:
+
+```bash
+python3 m-step/mstp-monitor/monitor.py -o trace.txt
+```
+
+### Trace Visualizer (`mstp-visualizer`)
+
+Converts M-Step traces to VCD format for visualization in GTKWave:
+
+```bash
+cd m-step/mstp-visualizer
+
+# Generate VCD file
+./1-gen-vcd.sh -t /path/to/trace.txt -elf /path/to/tfm_s.elf -o ./outputs
+
+# Open in GTKWave
+./2-gtkwave.sh -i ./outputs/trace.vcd
+```
+
+### Debugging Tools (`mstp-debug`)
+
+- **OpenOCD**: Hardware debugging configurations
+- **GDB-Py**: Python-enhanced GDB scripts
+- **Renode**: MCU emulation for trace analysis
+
+### Board Connection
+
+```bash
+# List connected boards
 STM32_Programmer_CLI -l
 
-# To connect to the serial port:
-sudo minicom -D /dev/ttyACM0 -b 115200
-# or
+# Connect via minicom
+minicom -D /dev/ttyACM0 -b 115200
+
+# Or via screen
 screen /dev/ttyACM0 115200
 ```
+
+---
+
+## Extending M-Step
+
+### Adding New Tests
+
+See [`m-step/mstp-eval/README.md`](m-step/mstp-eval/README.md) for detailed instructions on:
+
+1. Creating new test files
+2. Defining test configurations
+3. Customizing M-Step parameters
+
+### M-Step Configuration
+
+Key parameters in `m-step/mstp/inc/mstp.h`:
+
+| Parameter | Description |
+|-----------|-------------|
+| `BASE_CLK` | Timer value for interrupt injection |
+| `STREAK_THRESHOLD` | Zero-step detection threshold |
+| `BASE_ISR_TIME` | Interrupt handler overhead |
+
+### M-Step Plugins
+
+M-Step supports multiple features which can be enabled on demand via plugins:
+
+#### M-Step Side-Channel Plugins
+
+| Plugin | Location | Description |
+| :--- | :--- | :--- |
+| **Mstp-Nemesis**  | `m-step/mstp`         | Reveals interrupt-latencies, Nemesis [57]. |
+| **Mstp-Cache**    | `m-step/mstp-cache`   | Reveals cache activity, PRIME+PROBE [40, 42]. |
+| **Mstp-BUSted**   | `m-step/mstp-busted`  | Reveals memory accesses, BUSted [46]. |
+
+#### M-Step Architectural Plugins
+
+| Plugin | Location | Description |
+| :--- | :--- | :--- |
+| **Mstp-Zoom** | `m-step/mstp` | Amplifies interrupt-latency leakage §5.2. |
+
+#### M-Step Framework-related Plugins
+
+| Plugin | Location | Description |
+| :--- | :--- | :--- |
+| **Mstp-Production**   | `m-step/mstp-debug`   | Single-step for production code. |
+| **Mstp-Debug**        | `m-step/mstp`         | Single-step with debug information. |
+| **Mstp-Metrics**      | `m-step/mstp-metrics` | Single-step performance metrics. |
+| **Mstp-Emulator**     | `m-step/mstp-debug`   | MCU emulator with side-channel information. |
+| **Mstp-Visualizer**   | `m-step/mstp-visualizer` | Interactive interface to visualize M-Step traces. |
+| **Mstp-opDecoder**    | `m-step/mstp-opdecoder` | Runtime library to decode Armv8-M opcodes. |
+| **Mstp-Test**         | `m-step/mstp-test` | Evaluation and regression testing framework. |
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+**Build Fails with missing tool/dependence:**
+
+Probably you forget to enter a nix development shell.
+
+```bash
+nix develop
+```
+
+**Build fails with missing headers:**
+
+Ensure all submodules are initialized.
+
+```bash
+git submodule update --init --recursive
+```
+
+---
+
+## Citation
+
+If you use M-Step in your research, please cite our paper:
+
+```bibtex
+@inproceedings{rodrigues2026mstep,
+    title     = {{M-Step}: A Single-Stepping Framework for Side-Channel Analysis on {TrustZone-M}},
+    author    = {Rodrigues, Cristiano and Bognar, Marton and Pinto, Sandro and Van Bulck, Jo},
+    booktitle = {35th USENIX Security Symposium (USENIX Security 26)},
+    year      = {2026},
+    note      = {To appear},
+    publisher = {USENIX Association}
+}
+```
+
+---
+
+## License
+
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+
+---
+
+**Questions or Issues?** Please open an [issue](https://github.com/M-Step-Framework/m-step/issues) on GitHub.

@@ -44,4 +44,4 @@ set(TFM_MBEDCRYPTO_PSA_CRYPTO_CONFIG_PATH   "${CMAKE_CURRENT_LIST_DIR}/profile/m
 ############################## Enable Costum TAs ###############################
 
 set(APPROT              ON  CACHE BOOL  "Enable the APPROT partition")
-set(PROT_CRYPTO_ATTACK  ON  CACHE BOOL  "Enable the TFM PRoT PoC crypto attack partition")
+set(PROT_CRYPTO_ATTACK  OFF  CACHE BOOL  "Enable the TFM PRoT PoC crypto attack partition")

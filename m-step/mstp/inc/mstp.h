@@ -45,6 +45,7 @@
     // S Cacheable 
     //--------------------------------------------------------------------------
     #define ALL_NS_NON_CACHEABLE_TIM3_CACHEABLE_S_CACHEABLE
+    // #define ALL_NS_NON_CACHEABLE_S_CACHEABLE
     #ifdef ALL_NS_NON_CACHEABLE_TIM3_CACHEABLE_S_CACHEABLE
         // NS Non-cacheable
         #define BASE_CLK_OFFSET_NS 3
@@ -58,6 +59,20 @@
         #define BASE_ISR_TIME_OFFSET_NS 3
 
         // NS Non-cacheable -> Unstacking + Stacking times 
+        #define BASE_ISR_TIME_OFFSET_S 0
+    #elif defined(ALL_NS_NON_CACHEABLE_S_CACHEABLE)
+        // Another configuration
+        #define BASE_CLK_OFFSET_NS 2
+        #define BASE_CLK_CONTENTION_OFFSET_NS 2
+
+        // S Configuration
+        #define BASE_CLK_OFFSET_S 0
+        #define BASE_CLK_CONTENTION_OFFSET_S 0
+
+        // Another configuration -> Unstacking + Stacking times 
+        #define BASE_ISR_TIME_OFFSET_NS 14
+
+        // Another configuration -> Unstacking + Stacking times 
         #define BASE_ISR_TIME_OFFSET_S 0
     #else
         // NS cacheable
@@ -136,6 +151,8 @@
     #define DISABLE_TRACE       0
     #define ENABLE_MSTP_CACHE   1
     #define DISABLE_MSTP_CACHE  0
+    #define ENABLE_MSTP_BUSTED  1
+    #define DISABLE_MSTP_BUSTED 0
 
     typedef struct {
         uint32_t base_ISR_time;
@@ -152,11 +169,21 @@
         uint64_t start_trace_window;
         uint64_t end_trace_window;
         uint8_t  mstp_cache_enabled;
+        uint8_t  mstp_busted_enabled;
     } mstp_conf_t;
     
     //--------------------------------------------------------------------------
     // M-Step Runtime Context
     //--------------------------------------------------------------------------
+    typedef struct { 
+        uint32_t secure_stack;
+        uint32_t DCRS;
+        uint32_t FTYpe;
+        uint32_t Mode;
+        uint32_t SPSEL;
+        uint32_t ES;
+    } lr_t;
+
     typedef struct {
         uint32_t streak; 
         uint32_t streak_mul_clks; 
@@ -178,16 +205,8 @@
         uint64_t interrupts_counter;
         state_t  state_n;
         state_t  state_p;
+        lr_t    lr_exc_ret;
     } mstp_ctx_t;
-
-    typedef struct { 
-        uint32_t secure_stack;
-        uint32_t DCRS;
-        uint32_t FTYpe;
-        uint32_t Mode;
-        uint32_t SPSEL;
-        uint32_t ES;
-    } lr_t;
     
  #endif /* INC_M_STEP_H_ */
  

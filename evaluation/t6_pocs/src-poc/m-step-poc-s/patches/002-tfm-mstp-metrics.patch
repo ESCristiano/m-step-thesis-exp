@@ -1,0 +1,58 @@
+diff --git a/interface/include/tfm_veneers.h b/interface/include/tfm_veneers.h
+index 24c4036f4..c68ac9fb6 100644
+--- a/interface/include/tfm_veneers.h
++++ b/interface/include/tfm_veneers.h
+@@ -15,6 +15,13 @@
+ extern "C" {
+ #endif
+ 
++//------------------------------------------------------------------------------
++// M-Step Veneer declarations  
++//------------------------------------------------------------------------------
++
++uint32_t tfm_get_sp_s(void);
++uint32_t tfm_read_mem_s(uint32_t *);
++
+ /********************* Secure function declarations ***************************/
+ 
+ /**
+diff --git a/secure_fw/partitions/ns_agent_tz/CMakeLists.txt b/secure_fw/partitions/ns_agent_tz/CMakeLists.txt
+index 05ea8a48d..6ba3caf82 100644
+--- a/secure_fw/partitions/ns_agent_tz/CMakeLists.txt
++++ b/secure_fw/partitions/ns_agent_tz/CMakeLists.txt
+@@ -34,6 +34,7 @@ target_sources(tfm_s
+     PRIVATE
+         "$<$<IN_LIST:${TFM_SYSTEM_ARCHITECTURE},${ARM_V80M_ARCH}>:${CMAKE_CURRENT_SOURCE_DIR}/psa_api_veneers_v80m.c>"
+         "$<$<NOT:$<IN_LIST:${TFM_SYSTEM_ARCHITECTURE},${ARM_V80M_ARCH}>>:${CMAKE_CURRENT_SOURCE_DIR}/psa_api_veneers.c>"
++	mstp_veneers.c
+ )
+ 
+ target_compile_definitions(tfm_config
+diff --git a/secure_fw/partitions/ns_agent_tz/mstp_veneers.c b/secure_fw/partitions/ns_agent_tz/mstp_veneers.c
+new file mode 100644
+index 000000000..f31c9aea0
+--- /dev/null
++++ b/secure_fw/partitions/ns_agent_tz/mstp_veneers.c
+@@ -0,0 +1,21 @@
++#include <stdint.h>
++#include "security_defs.h"
++
++__tz_c_veneer
++uint32_t tfm_get_sp_s(){
++  uint32_t sp_s = 0;
++  uint32_t control;
++  __asm("MRS %0, CONTROL" : "=r" (control));
++  // Return PSP if we are in thread mode, else return MSP
++  if (control & 0x2) {
++    __asm("MRS %0, PSP" : "=r" (sp_s));
++  } else {
++    __asm("MRS %0, MSP" : "=r" (sp_s));
++  }
++  return sp_s;
++}
++
++__tz_c_veneer
++uint32_t tfm_read_mem_s(uint32_t * addr){
++  return *addr;
++}
+\ No newline at end of file

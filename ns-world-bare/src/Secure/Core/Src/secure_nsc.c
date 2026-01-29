@@ -66,69 +66,6 @@ CMSE_NS_ENTRY void SECURE_RegisterCallback(SECURE_CallbackIDTypeDef CallbackId, 
   }
 }
 
-__attribute__((naked)) void dummy_function(){
-  __asm("mov r0, r0");
-  __asm("mov r0, r0");
-  __asm("mov r0, r0");
-  __asm("mov r0, r0");
-  __asm("mov r0, r0");
-  __asm("mov r0, r0");
-  __asm("bx lr");
-}
-
-unsigned int src = 0;
-
-void victim_ici_resume(){
-  __asm("ldr r0, =src");
-  __asm("ldr r1, [r0]");
-  __asm("mov r0, r0");
-  __asm("ldr r1, [r0]");
-  __asm("mov r0, r0");
-  // __asm("ldr r1, [r0]");
-  // __asm("mov r0, r0");
-  // __asm("ldr r1, [r0]");
-  // __asm("mov r0, r0");
-  // __asm("ldr r1, [r0]");
-  // __asm("ldr r1, [r0]");
-  // __asm("mov r0, r0");
-  // __asm("mov r0, r0");
-  // dummy_function();
-  // __asm("LDMIA R0!, {R1-R4}");
-  // __asm("push {r0,r1,r2,r3,r4,r5}"); 
-  // __asm("pop {r0,r1,r2,r3,r4,r5} ");
-}
-
-CMSE_NS_ENTRY void victim_S()
-{
-  victim_ici_resume();
-}
-
-__attribute((cmse_nonsecure_entry))
-void victim_normal_inst_s(){
-  victim_normal_inst();
-}
-
-__attribute((cmse_nonsecure_entry))
-void victim_ICI_inst_s(){
-  victim_ICI_inst();
-}
-
-__attribute((cmse_nonsecure_entry))
-void victim_IRI_inst_s(){
-  victim_IRI_inst();
-}
-
-// C 
-__attribute((cmse_nonsecure_entry))
-void victim_printf_inst_s(){
-  victim_printf_inst();
-}
-
-__attribute((cmse_nonsecure_entry))
-void victim_strlen_inst_s(){
-  victim_strlen_inst();
-}
-
 __attribute((cmse_nonsecure_entry))
 uint32_t get_sp_s(){
   uint32_t sp_s = 0;

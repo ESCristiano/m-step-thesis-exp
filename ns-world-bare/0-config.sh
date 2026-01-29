@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-ROOT="$(realpath .)"
+ROOT="$(realpath "$(dirname "$0")")"
 
 COPILOT="${ROOT}/../copilot/copilot.sh"
 COPILOT_DIR="$(dirname "${COPILOT}")"
@@ -52,27 +52,17 @@ fi
 if [[ "$CLEAN" == "true" ]]; then
     echo "Cleaning NS and TF-M building directories."
     
-    sudo rm -rf ${ROOT}/build  \
-                ${ROOT}/src/NonSecure/build/ \
-                ${ROOT}/src/Secure/build/ \
-                ${COPILOT_DIR}/build/${PLATFORM}_${PROFILE}_s
+    rm -rf  ${ROOT}/build  \
+            ${ROOT}/src/NonSecure/build/ \
+            ${ROOT}/src/Secure/build/ \
+            ${COPILOT_DIR}/build/${PLATFORM}_${PROFILE}_s  || true
 
 else
 #-------------------------------------------------------------------------------
-# Config and build S and NS
+# Config S and NS
 #-------------------------------------------------------------------------------
-    ORIGINAL_DIR="$(pwd)"
-    cd "$(dirname "${COPILOT}")"
-    #S Config and Build
-    ${COPILOT} -c s -b s -t ${TARGET} -p ${PROFILE}
-    cd "${ORIGINAL_DIR}"
+    ${COPILOT} -c s -t ${TARGET} -p ${PROFILE}
 
-    # NS
-    cmake -G "Eclipse CDT4 - Unix Makefiles" ./src -B ./build/
-
-    # NS Build
-    ORIGINAL_DIR="$(pwd)"
-    cd "$(dirname "${COPILOT}")"
-    ${COPILOT} -b ${BUILD_TYPE} -t ${TARGET} -p ${PROFILE}
-    cd "${ORIGINAL_DIR}"
+    # NS Config
+    cmake -G "Eclipse CDT4 - Unix Makefiles" ${ROOT}/src -B ${ROOT}/build/
 fi

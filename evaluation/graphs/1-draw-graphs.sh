@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-ROOT="$(realpath .)"
+ROOT="$(realpath "$(dirname "$0")")"
 
 PY_SCRIPTS=${ROOT}/scripts
 OUTPUTS=${ROOT}

@@ -33,6 +33,7 @@
           py.kconfiglib
           py.tkinter
 	  py.matplotlib
+	  py.pyserial
       	]);
  
       in {
