@@ -249,7 +249,7 @@ fi
 if $VISUALIZER; then     
     echo "Launching GTKwave Visualizer..."
     RAW_TRACE="$(realpath "${RAW_TRACE}")"
-    ELF="$(realpath "${RAW_TRACE}")"
+    ELF="$(realpath "${ELF}")"
     VIS_OUT="$(realpath "${VIS_OUT}")"
     echo "${RAW_TRACE}"
     echo "${ELF}"

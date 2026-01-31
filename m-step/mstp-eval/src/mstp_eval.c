@@ -3,6 +3,7 @@
 #include "mstp_eval.h"
 #include "mstp_eval_poc.h"
 #include "mstp_board_setup.h"
+#include "mstp_eval_prntf_gtk.h"
 #include "mstp_eval_mstp_metrics.h"
 #include "test_eval_config.h"
 
@@ -27,6 +28,9 @@ void mstp_eval(void) {
     #endif
     #ifdef TEST5_ENABLE
         test5_memory_contention(1, NO_PRINT, S_TFM);
+    #endif
+    #ifdef TEST7_ENABLE
+        test7_prntf_gtk_eval(1, NO_PRINT, S_TFM);
     #endif
 
     //--------------------------------------------------------------------------

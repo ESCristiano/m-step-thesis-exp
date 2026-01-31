@@ -143,6 +143,7 @@ add_library(mstp_eval
         ${CMAKE_CURRENT_SOURCE_DIR}/mstp-eval/src/mstp_board_setup.c
         ${CMAKE_CURRENT_SOURCE_DIR}/mstp-eval/src/mstp_eval_mstp_metrics.c
         ${CMAKE_CURRENT_SOURCE_DIR}/mstp-eval/src/mstp_eval_covert_ch.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/mstp-eval/src/mstp_eval_prntf_gtk.c
 )
 
 target_include_directories(mstp_eval 

@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 ROOT="$(realpath "$(dirname "$0")")"
 
-PY_SCRIPTS=${ROOT}/scripts
-INPUTS=${ROOT}/../traces/tfm-inv-mod-001
+GEN_VCD=${ROOT}/scripts/gen-vcd.py
 OUTPUTS=${ROOT}/outputs
-TRACE=${INPUTS}/trace.txt  # Default trace file
-ELF=${INPUTS}/tfm_s.elf
+GTKW_CONFS=${ROOT}/gtkw_confs
 
 #-------------------------------------------------------------------------------
 # Parse arguments
@@ -18,7 +16,7 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         -t|--trace)
             if [[ -z "$2" ]]; then
-                echo "Error: --trace requires a file path"
+                echo "Error: -t|--trace requires a file path"
                 exit 1
             fi
             TRACE="$2"
@@ -34,7 +32,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         -o|--output)
             if [[ -z "$2" ]]; then
-                echo "Error: --output requires a directory path"
+                echo "Error: -o|--output requires a directory path"
                 exit 1
             fi
             OUTPUTS="$2"
@@ -45,31 +43,24 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         -h|--help)
-            echo "Usage: $0 [-t|--trace TRACE_FILE] [-elf ELF_FILE] [-o|--output OUTPUT_DIR] [-c|--clean]"
+            echo "Usage: $0 [-t|--trace <file>] [-elf <file>] [-o|--output <dir>] [-c|--clean]"
             echo ""
             echo "Options:"
-            echo "  -t, --trace TRACE_FILE   Specify trace file (default: ${INPUTS}/trace.txt)"
-            echo "  -elf ELF_FILE            Specify elf file (default: ${INPUTS}/tfm_s.elf)"
-            echo "  -o, --output OUTPUT_DIR  Specify output directory (default: ${ROOT}/outputs)"
+            echo "  -t, --trace TRACE_FILE   Specify trace file (required)"
+            echo "  -elf ELF_FILE            Specify elf file (required)"
+            echo "  -o, --output OUTPUT_DIR  Specify output directory (required)"
             echo "  -c, --clean              Clean output directory"
             echo "  -h, --help               Show this help message"
-            echo ""
-            echo "Examples:"
-            echo "  $0                                    # Use default trace file"
-            echo "  $0 -t /path/to/my_trace.txt         # Use custom trace file"
-            echo "  $0 --trace ./custom_trace.txt       # Use custom trace file"
-            echo "  $0 -o /path/to/output               # Use custom output directory"
             exit 0
             ;;
         *)
             echo "Unknown argument: $1"
-            echo "Usage: $0 [-t|--trace TRACE_FILE] [-elf ELF_FILE] [-o|--output OUTPUT_DIR] [-c|--clean]"
+            echo "Usage: $0 [-t|--trace <file>] [-elf <file>] [-o|--output <dir>] [-c|--clean]"
             echo "Use -h or --help for more information"
             exit 1
             ;;
     esac
 done
-
 
 #-------------------------------------------------------------------------------
 # Clean up if requested
@@ -77,6 +68,8 @@ done
 if [ "$CLEAN" = true ]; then
     echo "Cleaning Experiment..."
     rm -r ${OUTPUTS}/* || true 
+    rm -r ${GTKW_CONFS}/*.tbl || true 
+    rm -r ${GTKW_CONFS}/local_session.gtkw || true 
     echo "Clean completed."
     exit 0
 fi
@@ -84,6 +77,10 @@ fi
 #-------------------------------------------------------------------------------
 # Generate VCD
 #-------------------------------------------------------------------------------
+TRACE="$(realpath "${TRACE}")"
+ELF="$(realpath "${ELF}")"
+OUTPUTS="$(realpath "${OUTPUTS}")"
+
 # Validate trace file exists
 if [[ ! -f "$TRACE" ]]; then
     echo "Error: Trace file '$TRACE' not found"
@@ -96,13 +93,16 @@ if [[ ! -f "$ELF" ]]; then
     exit 1
 fi
 
+echo "##########################################################################"
 echo "Using trace file: $TRACE"
 echo "Using binary file: $ELF"
 echo "Output directory: $OUTPUTS"
+echo "##########################################################################"
 echo ""
 
-python3 ${PY_SCRIPTS}/gen-vcd.py    \
-        "${TRACE}"                   \
-        "${ELF}"                     \
-        --output-dir "${OUTPUTS}"    \
+python3 ${GEN_VCD}                  \
+        "${TRACE}"                  \
+        "${ELF}"                    \
+        --output-dir "${OUTPUTS}"   \
+        --tables-dir "${GTKW_CONFS}"\
         --vcd-name trace.vcd

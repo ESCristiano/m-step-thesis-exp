@@ -1,11 +1,7 @@
 [*]
 [*] GTKWave Analyzer v3.3.121 (w)1999-2024 BSI
-[*] Tue Jun 10 10:29:23 2025
 [*]
-[dumpfile] "/home/cris/Documents/0_Projects/jo-collab/m-step/mstp-visualizer/trace_visualization.vcd"
-[dumpfile_mtime] "Tue Jun 10 10:22:42 2025"
-[dumpfile_size] 1878858
-[savefile] "/home/cris/Documents/0_Projects/jo-collab/m-step/mstp-visualizer/trace_visualization.gtkw"
+[dumpfile_size] 9419508
 [timestart] 133
 [size] 1920 1033
 [pos] -1 -1
@@ -24,14 +20,14 @@ top.cycle[31:0]
 top.instr_addr[31:0]
 @2022
 [color] 2
-^1 /home/cris/Documents/0_Projects/jo-collab/m-step/mstp-visualizer/inst_addr_mnemonic.tbl
+^1 {INSERT_ROOT}/gtkw_confs/inst_addr_mnemonic.tbl
 +{inst_raw} top.instr_addr[31:0]
 [color] 2
-^4 /home/cris/Documents/0_Projects/jo-collab/m-step/mstp-visualizer/inst_addr_raw.tbl
+^2 {INSERT_ROOT}/gtkw_confs/inst_addr_raw.tbl
 +{inst_full} top.instr_addr[31:0]
 @c02022
 [color] 3
-^2 /home/cris/Documents/0_Projects/jo-collab/m-step/mstp-visualizer/inst_addr_function.tbl
+^3 {INSERT_ROOT}/gtkw_confs/inst_addr_function.tbl
 +{func} top.instr_addr[31:0]
 @28
 (0)top.instr_addr[31:0]

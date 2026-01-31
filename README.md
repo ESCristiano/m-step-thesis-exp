@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-STM32L5-green.svg)](https://www.st.com/en/microcontrollers-microprocessors/stm32l5-series.html)
-[![Paper](https://img.shields.io/badge/Paper-USENIX%20Sec'26-red.svg)](Rodrigues%20et%20al.%20-%20M-Step%20A%20Single-Stepping%20Framework%20for%20Side-Channel%20Analysis%20on%20TrustZone-M.pdf)
+[![Paper](https://img.shields.io/badge/Paper-USENIX%20Sec'26-red.svg)](TBD!)
 
 This repository contains the artifacts for the USENIX Security'26 paper: **"M-Step: A Single-Stepping Framework for Side-Channel Analysis on TrustZone-M"**.
 
@@ -321,8 +321,8 @@ M-Step supports multiple features which can be enabled on demand via plugins:
 
 | Plugin | Location | Description |
 | :--- | :--- | :--- |
-| **Mstp-Production**   | `m-step/mstp-debug`   | Single-step for production code. |
-| **Mstp-Debug**        | `m-step/mstp`         | Single-step with debug information. |
+| **Mstp-Production**   | `m-step/mstp`         | Single-step for production code. |
+| **Mstp-Debug**        | `m-step/mstp-debug`   | Single-step with debug information. |
 | **Mstp-Metrics**      | `m-step/mstp-metrics` | Single-step performance metrics. |
 | **Mstp-Emulator**     | `m-step/mstp-debug`   | MCU emulator with side-channel information. |
 | **Mstp-Visualizer**   | `m-step/mstp-visualizer` | Interactive interface to visualize M-Step traces. |

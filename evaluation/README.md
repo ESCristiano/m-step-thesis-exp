@@ -63,6 +63,7 @@ cd evaluation
 | **Figure 7a & 10** (Template) | `graphs/`         | `1-draw-graphs.sh`| `patterns/06-shift_template.png` |
 | **Figure 7b** (Template)      | `graphs/`         | `1-draw-graphs.sh`| `patterns/06-sub_template.png` |
 | **Section 6.3** (PoC Attacks) | `t6_pocs/`        | `1-run-pocs.sh`   | Results on the terminal. |
+| **Appendix A Fig 8**          | `t7-printf-gtkwave/`| `1-run-test.sh` | Opens GTKWave with the trace of the printf. |
 
 ## Individual Test Descriptions
 
@@ -157,7 +158,7 @@ cd t6_pocs
 - `logs/trace_poc2.txt`: Trace from PoC #2
 - You will see the extracted RSA prime factors (P, Q) on the terminal.
 
-<!-- 
+
 ### T7: GTKWave Visualization Tests
 
 Tests the trace visualization pipeline.
@@ -169,7 +170,7 @@ cd t7-printf-gtkwave
 
 **Outputs:**
 - `logs/`: Trace files
-- VCD files for GTKWave visualization -->
+- VCD files for GTKWave visualization
 
 ## Generating Paper Figures
 
