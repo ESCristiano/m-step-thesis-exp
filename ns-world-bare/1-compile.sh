@@ -8,7 +8,7 @@ TEST_CONFIG="${MSTP_DIR}/mstp-eval/inc/test_eval_config.h"
 
 # Static Configuration Values
 TARGET="STM32L5"
-BUILD_TYPE="ns_costum"
+BUILD_TYPE="ns"
 PROFILE="mstp"
 
 #-------------------------------------------------------------------------------

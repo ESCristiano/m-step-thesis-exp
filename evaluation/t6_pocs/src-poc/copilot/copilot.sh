@@ -22,16 +22,16 @@ while [[ $# -gt 0 ]]; do
         -b|--build)
             BUILD_TYPE="$2"
             if [[   "$BUILD_TYPE" != "s"        && 
-                    "$BUILD_TYPE" != "ns_costum" ]]; then
-                echo "Error: Invalid build type '$BUILD_TYPE'. Supported values are 's', 'ns_costum'."
+                    "$BUILD_TYPE" != "ns" ]]; then
+                echo "Error: Invalid build type '$BUILD_TYPE'. Supported values are 's', 'ns'."
                 exit 1
             fi
             shift 2
             ;;
         -c|--config)
             CONFIG_TYPE="$2"
-            if [[ "$CONFIG_TYPE" != "s" && "$CONFIG_TYPE" != "ns_costum" ]]; then
-                echo "Error: Invalid config type '$CONFIG_TYPE'. Supported values are 's' or 'ns_costum'."
+            if [[ "$CONFIG_TYPE" != "s" && "$CONFIG_TYPE" != "ns" ]]; then
+                echo "Error: Invalid config type '$CONFIG_TYPE'. Supported values are 's' or 'ns'."
                 exit 1
             fi
             shift 2
@@ -63,7 +63,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         *)
             echo "Unknown argument: $1"
-            echo "Usage: $0 [-b|--build <s|ns|ns_costum>] [-c|--config <s|ns>] [-t|--target <BoardName>] [-d|--deploy] [-p|--profile <bare|crypto|mstp>] [-m|--monitor <output_file>]"
+            echo "Usage: $0 [-b|--build <s|ns>] [-c|--config <s|ns>] [-t|--target <BoardName>] [-d|--deploy] [-p|--profile <bare|crypto|mstp>] [-m|--monitor <output_file>]"
             exit 1
             ;;
     esac
@@ -94,6 +94,14 @@ if [[ "${CONFIG_TYPE}" == "s" ]]; then
 
 fi
 
+#-------------------------------------------------------------------------------
+# Configure NS build system
+#-------------------------------------------------------------------------------
+if [[ "${CONFIG_TYPE}" == "ns" ]]; then
+    cmake   -G "Eclipse CDT4 - Unix Makefiles" ${NSPE_MSTP_APP}/src \
+            -B ${NSPE_MSTP_APP}/build/
+fi
+
 BUILD="${ROOT}/build/${PLATFORM}_${PROFILE}_${BUILD_TYPE}"
 
 #-------------------------------------------------------------------------------
@@ -111,9 +119,9 @@ if [[ "${BUILD_TYPE}" == "s" ]]; then
 fi
 
 #-------------------------------------------------------------------------------
-# Build Costum NS
+# Build NS (Baremetal)
 #-------------------------------------------------------------------------------
-if [[ "${BUILD_TYPE}" == "ns_costum" ]]; then
+if [[ "${BUILD_TYPE}" == "ns" ]]; then
         BUILD_S="${ROOT}/build/${PLATFORM}_${PROFILE}_s"
             
         cmake --build ${NSPE_MSTP_APP}/build

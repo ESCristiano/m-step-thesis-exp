@@ -132,7 +132,7 @@ Or using copilot:
 
 ```bash
 cd copilot
-./copilot.sh -b ns_costum -p mstp
+./copilot.sh -b ns -p mstp
 ```
 
 ## Sample Traces

@@ -7,7 +7,7 @@ COPILOT_DIR="$(dirname "${COPILOT}")"
 # Static Configuration Values
 TARGET="STM32L5"
 CONFIG=true
-BUILD_TYPE="ns_costum"
+BUILD_TYPE="ns"
 PROFILE="mstp"
 CLEAN=false
 
@@ -62,7 +62,5 @@ else
 # Config S and NS
 #-------------------------------------------------------------------------------
     ${COPILOT} -c s -t ${TARGET} -p ${PROFILE}
-
-    # NS Config
-    cmake -G "Eclipse CDT4 - Unix Makefiles" ${ROOT}/src -B ${ROOT}/build/
+    ${COPILOT} -c ${BUILD_TYPE} -t ${TARGET} -p ${PROFILE}
 fi

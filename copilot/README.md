@@ -12,9 +12,6 @@ The `copilot.sh` script automates the entire workflow for configuring, building,
 copilot/
 ├── copilot.sh              # Main automation script
 ├── README.md               # This file
-├── build/                  # Build output directory (generated)
-│   ├── nucleo_l552ze_q_mstp_ns/   # NS world build artifacts
-│   └── nucleo_l552ze_q_mstp_s/    # S world build artifacts
 └── tfm-configs/            # TF-M configuration files
     ├── nucleo_l552ze_q-bare-config.cmake    # Minimal configuration
     ├── nucleo_l552ze_q-crypto-config.cmake  # Crypto services enabled
@@ -33,7 +30,7 @@ copilot/
 | Option | Arguments | Description |
 |--------|-----------|-------------|
 | `-c, --config` | `s` \| `ns` | Configure the build system for Secure or Non-Secure world |
-| `-b, --build` | `s` \| `ns` \| `ns_costum` | Build the specified image |
+| `-b, --build` | `s` \| `ns`  | Build the specified image |
 | `-p, --profile` | `bare` \| `crypto` \| `mstp` | Select build profile (default: `bare`) |
 | `-t, --target` | `STM32L5` | Specify target board (default: `STM32L5`) |
 | `-d, --deploy` | - | Deploy built images to the target board |
@@ -79,16 +76,6 @@ copilot/
 ./copilot.sh -d -p mstp
 ```
 
-### Build Custom Baremetal Application
-
-```bash
-# Build the custom NS application from ns-world-bare
-./copilot.sh -b ns_costum -p mstp
-
-# Deploy
-./copilot.sh -d -p mstp
-```
-
 ### Monitor and Capture Traces
 
 ```bash
@@ -110,7 +97,7 @@ The build process must follow this order:
 1. **Configure Secure World** (`-c s`): Sets up CMake for TF-M
 2. **Build Secure World** (`-b s`): Compiles TF-M and generates SPE API
 3. **Configure Non-Secure World** (`-c ns`): Sets up CMake for NS app (requires S world built)
-4. **Build Non-Secure World** (`-b ns` or `-b ns_costum`): Compiles NS application
+4. **Build Non-Secure World** (`-b ns`): Compiles NS application
 5. **Deploy** (`-d`): Flashes both images to the board
 
 > **Note**: The NS world configuration depends on the Secure world build output, so always build the Secure world first.

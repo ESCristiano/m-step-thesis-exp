@@ -5,7 +5,7 @@ COPILOT="${ROOT}/../copilot/copilot.sh"
 
 # Static Configuration Values
 TARGET="STM32L5"
-BUILD_TYPE="ns_costum"
+BUILD_TYPE="ns"
 PROFILE="mstp"
 
 #-------------------------------------------------------------------------------

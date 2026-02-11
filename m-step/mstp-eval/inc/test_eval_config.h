@@ -1,2 +1,2 @@
-#define TEST7_ENABLE
+#define TEST1_ENABLE
 

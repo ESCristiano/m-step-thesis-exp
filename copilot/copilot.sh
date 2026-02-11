@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 ROOT="$(realpath "$(dirname "$0")")"
-MEBDTLS="$(realpath "${ROOT}/../s-world/mbedtls")"
-TFM="$(realpath "${ROOT}/../s-world/trusted-firmware-m")"
-NSPE_RUNTIME="$(realpath "${ROOT}/../s-world/tf-m-tests")"
-NSPE_APP="$(realpath "${ROOT}/../ns-world-rtos")"
-NSPE_MSTP_APP="$(realpath "${ROOT}/../ns-world-bare")"
-MSTP="$(realpath "${ROOT}/../m-step")"
+MEBDTLS="${MEBDTLS:-$(realpath "${ROOT}/../s-world/mbedtls")}"
+TFM="${TFM:-$(realpath "${ROOT}/../s-world/trusted-firmware-m")}"
+NSPE_MSTP_APP="${NSPE_MSTP_APP:-$(realpath "${ROOT}/../ns-world-bare")}"
+MSTP="${MSTP:-$(realpath "${ROOT}/../m-step")}"
 
 # Default values
 TARGET="STM32L5"
@@ -26,16 +24,16 @@ while [[ $# -gt 0 ]]; do
         -b|--build)
             BUILD_TYPE="$2"
             if [[   "$BUILD_TYPE" != "s"        && 
-                    "$BUILD_TYPE" != "ns"       && 
-                    "$BUILD_TYPE" != "ns_costum" ]]; then
-                echo "Error: Invalid build type '$BUILD_TYPE'. Supported values are 's', 'ns', or 'ns_costum'."
+                    "$BUILD_TYPE" != "ns"       ]]; then
+                echo "Error: Invalid build type '$BUILD_TYPE'. Supported values are 's' and 'ns'"
                 exit 1
             fi
             shift 2
             ;;
         -c|--config)
             CONFIG_TYPE="$2"
-            if [[ "$CONFIG_TYPE" != "s" && "$CONFIG_TYPE" != "ns" ]]; then
+            if [[   "$CONFIG_TYPE" != "s" && 
+                    "$CONFIG_TYPE" != "ns" ]]; then
                 echo "Error: Invalid config type '$CONFIG_TYPE'. Supported values are 's' or 'ns'."
                 exit 1
             fi
@@ -82,7 +80,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         *)
             echo "Unknown argument: $1"
-            echo "Usage: $0 [-b|--build <s|ns|ns_costum>] [-c|--config <s|ns>] [-t|--target <BoardName>] [-d|--deploy] [-p|--profile <bare|crypto|mstp>] [-m|--monitor <output_file>] [-vi|--visualizer <trace_file> <elf_file> <output_dir>]"
+            echo "Usage: $0 [-b|--build <s|ns>] [-c|--config <s|ns>] [-t|--target <BoardName>] [-d|--deploy] [-p|--profile <bare|crypto|mstp>] [-m|--monitor <output_file>] [-vi|--visualizer <trace_file> <elf_file> <output_dir>]"
             exit 1
             ;;
     esac
@@ -123,35 +121,11 @@ if [[ "${CONFIG_TYPE}" == "s" ]]; then
 fi
 
 #-------------------------------------------------------------------------------
-# Configure NSPE build system
+# Configure NS build system
 #-------------------------------------------------------------------------------
 if [[ "${CONFIG_TYPE}" == "ns" ]]; then
-        BUILD_S="${ROOT}/build/${PLATFORM}_${PROFILE}_s"
-
-        CONFIG_S="${ROOT}/build/${PLATFORM}_${PROFILE}_s"
-        TFM_SPE="$(realpath ${CONFIG_S})"
-
-        # I need to build the secure image first to have the SPE API available
-        cmake --build ${BUILD_S} -- install
-
-        # This file is missing from the SPE installation, maybe a TFM bug when
-        # building Mbed TLS out of tree. 
-        if [[ ! -f ${BUILD_S}/api_ns/interface/include/mbedtls/mbedtls_config.h ]]; then
-            cp ${MEBDTLS}/include/mbedtls/mbedtls_config.h \
-               ${BUILD_S}/api_ns/interface/include/mbedtls
-        fi
-
-        if [[ ! -d ${TFM_SPE}/api_ns/ ]]; then
-                echo "Error: The $TFM_SPE/api_ns/ does not exist. Please build the secure image first."
-                exit 1
-        fi
-
-        cmake   -S ${TFM} ${NSPE_APP}                                                   \
-                -B ${CONFIG}                                                            \
-                -DCMAKE_BUILD_TYPE=Debug                                                \
-                -DNSPE_RUNTIME_PATH=${NSPE_RUNTIME}                                     \
-                -DCONFIG_SPE_PATH=${TFM_SPE}/api_ns/                                    \
-                -DTFM_TOOLCHAIN_FILE=${TFM_SPE}/api_ns/cmake/toolchain_ns_GNUARM.cmake
+    cmake   -G "Eclipse CDT4 - Unix Makefiles" ${NSPE_MSTP_APP}/src \
+            -B ${NSPE_MSTP_APP}/build/
 fi
 
 BUILD="${ROOT}/build/${PLATFORM}_${PROFILE}_${BUILD_TYPE}"
@@ -171,19 +145,9 @@ if [[ "${BUILD_TYPE}" == "s" ]]; then
 fi
 
 #-------------------------------------------------------------------------------
-# Build NSPE build system
+# Build NS (Baremetal)
 #-------------------------------------------------------------------------------
 if [[ "${BUILD_TYPE}" == "ns" ]]; then
-        BUILD_S="${ROOT}/build/${PLATFORM}_${PROFILE}_s"
-            
-        cmake --build ${BUILD}
-        cp ${BUILD}/bin/tfm_ns_signed.bin ${BUILD_S}/api_ns/image_signing/scripts
-fi
-
-#-------------------------------------------------------------------------------
-# Build Costum NS
-#-------------------------------------------------------------------------------
-if [[ "${BUILD_TYPE}" == "ns_costum" ]]; then
         BUILD_S="${ROOT}/build/${PLATFORM}_${PROFILE}_s"
             
         cmake --build ${NSPE_MSTP_APP}/build

@@ -170,9 +170,6 @@ cd copilot
 ./copilot.sh -c ns -p mstp
 ./copilot.sh -b ns -p mstp
 
-# Build custom baremetal NS application
-./copilot.sh -b ns_costum -p mstp
-
 # Deploy to target
 ./copilot.sh -d -p mstp
 
@@ -212,12 +209,13 @@ cd evaluation
 
 | Test | Command | Paper Reference |
 |------|---------|-----------------|
-| M-Step Metrics | `./t1-mstp_metrics/1-run-test.sh` | Table 5 |
-| DIV Instruction Covert Channel | `./t2-covert-udiv/1-run-test.sh` | Figure 6a |
-| Instruction Timing Covert Channel | `./t3-covert-inst/1-run-test.sh` | Figure 6b |
-| ICache-based Covert Channel | `./t4-covert-cache/1-run-test.sh` | Figure 6c |
-| Bus Contention Covert Channel | `./t5-covert-cont/1-run-test.sh` | Figure 6d |
-| End-to-End PoC Attacks | `./t6_pocs/1-run-pocs.sh` | Section 6.3 |
+| M-Step Metrics | `./evaluation/t1-mstp_metrics/1-run-test.sh` | Table 5 |
+| DIV Instruction Covert Channel | `./evaluation/t2-covert-udiv/1-run-test.sh` | Figure 6a |
+| Instruction Timing Covert Channel | `./evaluation/t3-covert-inst/1-run-test.sh` | Figure 6b |
+| ICache-based Covert Channel | `./evaluation/t4-covert-cache/1-run-test.sh` | Figure 6c |
+| Bus Contention Covert Channel | `./evaluation/t5-covert-cont/1-run-test.sh` | Figure 6d |
+| End-to-End PoC Attacks | `./evaluation/t6_pocs/1-run-pocs.sh` | Section 6.3 |
+| Trace visualization tests | `./evaluation/t7-printf-gtkwave/1-run-test.sh`| Figure 8 |
 
 ### Generate Paper Figures
 
