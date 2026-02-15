@@ -59,7 +59,7 @@ ${NS_DIR}/0-config.sh
 TEST_CONFIG="${MSTP_DIR}/mstp-eval/inc/test_eval_config.h"
 TEST_CONFIG_S="${MSTP_DIR}/mstp-victims/s/inc/test_eval_config.h"
 
-Enable TEST for both configs
+# Enable TEST 
 for config in "${TEST_CONFIG}" "${TEST_CONFIG_S}"; do
     rm -rf "${config}" || true
     cat > "${config}" << 'EOF'
