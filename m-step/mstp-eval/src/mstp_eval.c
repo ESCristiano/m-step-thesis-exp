@@ -4,7 +4,9 @@
 #include "mstp_eval_poc.h"
 #include "mstp_board_setup.h"
 #include "mstp_eval_prntf_gtk.h"
+#include "mstp_eval_toy_attack.h"
 #include "mstp_eval_mstp_metrics.h"
+#include "mstp_eval_mstp_keypad_poc.h"
 #include "test_eval_config.h"
 
 void mstp_eval(void) {    
@@ -43,4 +45,29 @@ void mstp_eval(void) {
     // // To run the PoCs with trace, uncomment the next lines. 
     // run_trace(test_conf_poc, BOARD_DEFAULT, POC_001, PRINT, S_TFM);
     // run_trace(test_conf_poc, BOARD_DEFAULT, POC_002, PRINT, S_TFM);
+
+    //--------------------------------------------------------------------------
+    // Extra - PhD Thesis
+    //--------------------------------------------------------------------------
+    #ifdef TEST_TOY_ATTACK_ENABLE
+        // else-path
+        printf("TRACE ELSE\r\n");    
+        toy_attack_int_lat(1, NO_PRINT, S_TFM);
+        printf("\r\n");
+        // if-path
+        printf("TRACE IF\r\n");
+        toy_attack_int_lat(1, NO_PRINT, S_TFM);
+        printf("\r\n");
+    #endif
+    
+    #ifdef TEST_CCH_NEMESIS_ENABLE
+        printf("Nemesis Covert-Channel Test\r\n");    
+        cch_nemesis_int_lat(1, NO_PRINT, S_TFM);
+        printf("\r\n");
+    #endif
+
+    #ifdef TEST_MSTP_KEYPAD_POC_ENABLE
+        mstp_keypad_poc(1, NO_PRINT, S_TFM);
+        printf("\r\n");
+    #endif
 }

@@ -1,0 +1,12 @@
+# Pattern Template Matrix (Text Format)
+# Format: Pattern_Name Label Timing_Sequence
+#
+
+if   3 01 01 04 03 02 01 01 01 02 01 01 02 01 01 01 01 02 01 01 01 01 01 01 02 01 01 01 02 01 01 01 03 02 01 01 01 01 01
+else 1 01 01 04 03 02 01 01 01 02 01 01 02 01 01 01 01 02 01 01 01 01 01 01 02 01 01 01 02 01 01 01 03 02 01 01 01 01 01
+
+# Total patterns: 2
+
+# Pattern Statistics:
+#   if: 38 samples
+#   else: 38 samples

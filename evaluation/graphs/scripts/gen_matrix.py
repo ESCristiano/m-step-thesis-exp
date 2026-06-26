@@ -945,6 +945,7 @@ Predefined gradients:
   - green: Light to dark green gradient
   - red: Light to dark red gradient
   - orange: Light to dark orange gradient (default)
+  - orange_white: White to dark orange gradient 
   - purple: Light to dark purple gradient
   - gray: Light to dark gray gradient
   - thermal: Viridis colormap (black to purple to yellow)

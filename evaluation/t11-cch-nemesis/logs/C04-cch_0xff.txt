@@ -1,0 +1,14 @@
+Color_type: Integer #Integer or Probability
+Gradient: orange
+Min_number_of_colors: 3
+Y: bit0 bit1 bit2 bit3 bit4 bit5 bit6 bit7
+X: It1 It2 It3 It4 It5 It6 It7 It8
+
+0 0 0 0 0 0 0 2 
+0 0 0 0 0 0 2 0 
+0 0 0 0 0 2 0 0 
+0 0 0 0 2 0 0 0 
+0 0 0 2 0 0 0 0 
+0 0 2 0 0 0 0 0 
+0 2 0 0 0 0 0 0 
+2 0 0 0 0 0 0 0 

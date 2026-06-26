@@ -108,7 +108,7 @@ void process_metrics_production(uint32_t sp, mstp_ctx_t *mstp_ctx, mstp_conf_t m
 {
 	// Just print instruction Lat
 	if(lr_exc_return->secure_stack == S_STACK && mstp_conf.trace_enable && !mstp_conf.debug) 
-		printf("%02d\r\n", mstp_ctx->inst_time);
+		printf(" %02d", mstp_ctx->inst_time);
 }
 
 //--------------------------------------------------------------------------

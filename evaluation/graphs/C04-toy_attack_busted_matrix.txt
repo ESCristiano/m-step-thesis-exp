@@ -1,0 +1,12 @@
+# Pattern Template Matrix (Text Format)
+# Format: Pattern_Name Label Timing_Sequence
+#
+
+else-path 12 10 10 13 12 11 10 10 10 10 10 10 10 10 10 10 10 12
+if-path   10 10 10 13 12 11 10 10 10 10 10 10 10 10 10 10 10 12
+
+# Total patterns: 2
+
+# Pattern Statistics:
+#   else-path: 17 samples
+#   if-path: 17 samples

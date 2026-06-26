@@ -1,2 +1,2 @@
-#define TEST1_ENABLE
+#define TEST_MSTP_KEYPAD_POC_ENABLE
 
